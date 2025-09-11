@@ -13,13 +13,18 @@
     <!-- KaTeX CSS (v0.16.22) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous">
 
-    <!-- Highcharts.js for graphs -->
+    <!-- Highcharts.js Core and Modules -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <!-- Modules for new features: Exporting, Data Export, and Accessibility -->
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
     
     <!-- KaTeX JS (v0.16.22) - deferred -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous"></script>
 
-    <!-- KaTeX Auto-render extension (v0.16.22) - deferred with onload as per template -->
+    <!-- KaTeX Auto-render extension (v0.16.22) - deferred with onload -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous"
         onload="renderMathInElement(document.body);"></script>
 
@@ -33,7 +38,7 @@
             }
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Roboto', 'Noto Sans JP', sans-serif; background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; transition: background-color 0.3s, color 0.3s; }
+        body { font-family: 'Roboto', sans-serif; background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; transition: background-color 0.3s, color 0.3s; }
         main { max-width: 900px; margin: 2rem auto; padding: 1rem; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         h1 { font-size: 1.8rem; color: var(--text-color); }
@@ -58,6 +63,7 @@
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         th, td { border: 1px solid var(--border-color); padding: 0.8rem; text-align: center; }
         thead { background-color: var(--table-header-bg); font-weight: 700; }
+        tfoot { background-color: var(--table-header-bg); font-weight: 700; }
         #dataTable td { padding: 0.5rem; }
         .chart-container { width: 100%; height: 400px; }
         .explanation { padding: 0.5rem; margin-bottom: 0.5rem; border-left: 3px solid var(--primary-color); background-color: var(--highlight-bg); }
@@ -116,10 +122,15 @@
                     <div class="stat-item"><h3>最頻値 (Mode)</h3><div id="modeValue" class="stat-value"></div><div class="formula" id="modeFormula"></div></div>
                 </div>
             </div>
-            <div class="card"><h2>データ一覧（昇順）</h2><div class="table-container"><table id="dataTable"><tbody></tbody></table></div></div>
+            <div class="card"><h2>データ一覧（入力順）</h2><div class="table-container"><table id="dataTable"><tbody></tbody></table></div></div>
+            <div class="card"><h2>度数分布表</h2><div class="table-container"><table id="frequencyTable"><thead><tr><th>階級</th><th>度数（個数）</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div></div>
             <div class="card"><h2>ドットプロット</h2><div id="dotPlotContainer" class="chart-container"></div></div>
             <div class="card"><h2>ヒストグラム（柱状グラフ）</h2><div id="histogramContainer" class="chart-container"></div></div>
-            <div class="card"><h2>度数分布表</h2><div class="table-container"><table id="frequencyTable"><thead><tr><th>階級</th><th>度数（個数）</th></tr></thead><tbody></tbody></table></div></div>
+            <div class="card"><h2>折れ線グラフ</h2><div id="lineChartContainer" class="chart-container"></div></div>
+            <div class="card"><h2>棒グラフ</h2><div id="barChartContainer" class="chart-container"></div></div>
+            <div class="card"><h2>円グラフ</h2><div id="pieChartContainer" class="chart-container"></div></div>
+            <div class="card"><h2>帯グラフ</h2><div id="obiChartContainer" class="chart-container"></div></div>
+            <div class="card"><h2>レーダーチャート</h2><div id="radarChartContainer" class="chart-container"></div></div>
         </div>
     </main>
 
@@ -170,32 +181,37 @@
         
         async function analyzeData() {
             const rawData = document.getElementById('dataInput').value;
-            const numbers = rawData.split(/[\s,]+/).filter(n => n !== "").map(Number).filter(n => !isNaN(n));
-            if (numbers.length === 0) { alert('有効なデータが入力されていません。'); return; }
-            numbers.sort((a, b) => a - b);
+            const numbersAsInput = rawData.split(/[\s,]+/).filter(n => n !== "").map(Number).filter(n => !isNaN(n));
+            if (numbersAsInput.length === 0) { alert('有効なデータが入力されていません。'); return; }
+
+            const originalNumbers = [...numbersAsInput];
+            const sortedNumbers = [...numbersAsInput].sort((a, b) => a - b);
             
-            const sum = calculateSum(numbers);
-            const mean = calculateMean(numbers);
-            const median = calculateMedian(numbers);
-            const modeResult = calculateMode(numbers);
+            const sum = calculateSum(sortedNumbers);
+            const mean = calculateMean(sortedNumbers);
+            const median = calculateMedian(sortedNumbers);
+            const modeResult = calculateMode(sortedNumbers);
             const binWidth = parseInt(document.getElementById('binWidth').value);
             if (isNaN(binWidth) || binWidth <= 0) { alert('階級の幅は正の整数で入力してください。'); return; }
 
-            const frequencyData = createFrequencyData(numbers, binWidth);
-            const dotPlotData = createDotPlotData(numbers);
+            const frequencyData = createFrequencyData(sortedNumbers, binWidth);
+            const dotPlotData = createDotPlotData(sortedNumbers);
             
-            displayResults(sum, mean, median, modeResult.text, numbers);
-            renderDataTable(numbers);
+            displayResults(sum, mean, median, modeResult.text, sortedNumbers);
+            renderDataTable(originalNumbers);
             renderFrequencyTable(frequencyData);
             
             setHighchartsTheme();
             renderDotPlot(dotPlotData);
             renderHistogram(frequencyData);
+            renderLineChart(sortedNumbers);
+            renderBarChart(frequencyData);
+            renderPieChart(frequencyData);
+            renderObiChart(frequencyData);
+            renderRadarChart(frequencyData);
 
-            await getAISummary(numbers, { sum, mean, median, mode: modeResult.text });
+            await getAISummary(sortedNumbers, { sum, mean, median, mode: modeResult.text });
 
-            // 【重要】動的に生成した数式をKaTeXで再レンダリングする
-            // displayResults関数で数式を含むHTMLをDOMに挿入した後に、この関数を呼び出す必要があります。
             if (window.renderMathInElement) {
                 renderMathInElement(document.body, {
                     delimiters: [
@@ -210,56 +226,27 @@
             const aiSpinner = document.getElementById('aiSpinner');
             const aiSummaryContent = document.getElementById('aiSummaryContent');
             const apiKey = localStorage.getItem('geminiApiKey');
-
             aiSummaryContent.innerHTML = '';
-            
             if (!apiKey) {
                 aiSummaryContent.innerHTML = '<p>AI要約を利用するには、設定からAPIキーを登録してください。</p>';
                 return;
             }
-
             aiSpinner.style.display = 'flex';
-
-            const prompt = `あなたは優秀なデータ分析アシスタントです。以下のデータセットとその基本統計量に基づいて、データの特性について簡潔で分かりやすい要約を作成してください。
-
-            重点的に分析するポイント：
-            - 中心の傾向：平均値と中央値は近いか？どちらがデータ全体をよりよく表しているか？
-            - ばらつき：データの範囲（最小値と最大値）は広いか？特定の値に集中しているか？
-            - 分布の形状：最頻値は存在するか？データは山のような形をしているか、それとも平坦か？
-            
-            ---
-            ### データセット (${data.length}個)
-            ${data.join(', ')}
-
-            ### 基本統計量
-            - 合計値: ${stats.sum.toLocaleString()}
-            - 平均値: ${stats.mean.toFixed(3)}
-            - 中央値: ${stats.median.toFixed(3)}
-            - 最頻値: ${stats.mode}
-            ---
-
-            以上の情報を基に、データ全体の傾向を要約してください。`;
-            
+            const prompt = `あなたは優秀なデータ分析アシスタントです。以下のデータセットとその基本統計量に基づいて、データの特性について簡潔で分かりやすい要約を作成してください。重点的に分析するポイント：- 中心の傾向：平均値と中央値は近いか？どちらがデータ全体をよりよく表しているか？- ばらつき：データの範囲（最小値と最大値）は広いか？特定の値に集中しているか？- 分布の形状：最頻値は存在するか？データは山のような形をしているか、それとも平坦か？---### データセット (${data.length}個)\n${data.join(', ')}\n\n### 基本統計量\n- 合計値: ${stats.sum.toLocaleString()}\n- 平均値: ${stats.mean.toFixed(3)}\n- 中央値: ${stats.median.toFixed(3)}\n- 最頻値: ${stats.mode}\n---以上の情報を基に、データ全体の傾向を要約してください。`;
             const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }]
-                    })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
-
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.error.message || `HTTPエラー: ${response.status}`);
                 }
-
                 const responseData = await response.json();
                 const summaryText = responseData.candidates[0].content.parts[0].text;
                 aiSummaryContent.textContent = summaryText;
-
             } catch (error) {
                 console.error('AI要約の生成に失敗しました:', error);
                 aiSummaryContent.innerHTML = `<p style="color: red;">要約の生成中にエラーが発生しました。APIキーが正しいか、指定されたモデル名が有効か確認するか、ブラウザのコンソールで詳細を確認してください。</p>`;
@@ -281,10 +268,10 @@
         
         function createFrequencyData(numbers, binWidth) {
             if (numbers.length === 0) return [];
-            const min = Math.floor(numbers[0] / binWidth) * binWidth;
+            const min = numbers[0];
             const max = numbers[numbers.length - 1];
             const bins = {};
-            for (let i = min; i <= max; i += binWidth) { bins[`${i} 以上 ${i + binWidth} 未満`] = 0; }
+            for (let i = Math.floor(min / binWidth) * binWidth; i <= max; i += binWidth) { bins[`${i} 以上 ${i + binWidth} 未満`] = 0; }
             numbers.forEach(num => { const binStart = Math.floor(num / binWidth) * binWidth; const label = `${binStart} 以上 ${binStart + binWidth} 未満`; if (bins[label] !== undefined) bins[label]++; });
             return Object.entries(bins).map(([label, count]) => ({ label, count }));
         }
@@ -328,15 +315,34 @@
             }
             tbody.appendChild(tr);
         }
-        function renderFrequencyTable(data) { const tbody = document.querySelector('#frequencyTable tbody'); tbody.innerHTML = ''; data.filter(item => item.count > 0).forEach(item => { const row = document.createElement('tr'); row.innerHTML = `<td>${item.label}</td><td>${item.count}</td>`; tbody.appendChild(row); }); }
-        function setHighchartsTheme() { const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches; const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim(); const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--card-bg-color').trim(); const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim(); Highcharts.setOptions({ chart: { backgroundColor: bgColor, style: { fontFamily: 'Roboto, sans-serif' } }, title: { style: { color: textColor } }, xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: gridColor }, yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor }, legend: { enabled: false }, tooltip: { backgroundColor: isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)', style: { color: textColor } }, credits: { enabled: false } }); }
-        function renderDotPlot(data) { const dotColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(); Highcharts.chart('dotPlotContainer', { chart: { type: 'scatter' }, title: { text: null }, xAxis: { title: { text: '値' } }, yAxis: { title: { text: '度数（積み上げ）' }, min: 0, allowDecimals: false, tickInterval: 1 }, series: [{ name: 'データ点', data: data, color: dotColor, marker: { radius: 5 } }], tooltip: { formatter: function () { return `値: <b>${this.x}</b><br/>${this.y}番目の点`; } } }); }
-        function renderHistogram(data) { const barColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(); const filteredData = data.filter(d => d.count > 0); Highcharts.chart('histogramContainer', { chart: { type: 'column' }, title: { text: null }, xAxis: { categories: filteredData.map(d => d.label), title: { text: '階級' } }, yAxis: { min: 0, title: { text: '度数' }, allowDecimals: false }, plotOptions: { column: { pointPadding: 0, borderWidth: 1, groupPadding: 0, shadow: false, borderColor: getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim() } }, series: [{ name: '度数', data: filteredData.map(d => d.count), color: barColor }], tooltip: { headerFormat: '<span style="font-size:10px">{point.key}</span><table>', pointFormat: '<tr><td style="padding:0">度数: </td><td style="padding:0"><b>{point.y}</b></td></tr>', footerFormat: '</table>', useHTML: true } }); }
-        
-        function formatArrayWithHighlight(arr, highlightIndices = []) {
-            const content = arr.map((val, i) => highlightIndices.includes(i) ? `<strong>${val}</strong>` : val).join(', ');
-            return `[${content}]`;
+        function renderFrequencyTable(data) {
+            const table = document.getElementById('frequencyTable');
+            const tbody = table.querySelector('tbody');
+            const tfoot = table.querySelector('tfoot');
+            tbody.innerHTML = '';
+            tfoot.innerHTML = '';
+
+            let totalFrequency = 0;
+            data.filter(item => item.count > 0).forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${item.label}</td><td>${item.count}</td>`;
+                tbody.appendChild(row);
+                totalFrequency += item.count;
+            });
+
+            const totalRow = document.createElement('tr');
+            totalRow.innerHTML = `<td><strong>合計</strong></td><td><strong>${totalFrequency}</strong></td>`;
+            tfoot.appendChild(totalRow);
         }
+        function setHighchartsTheme() { const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches; const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim(); const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--card-bg-color').trim(); const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim(); Highcharts.setOptions({ chart: { backgroundColor: bgColor, style: { fontFamily: 'Roboto, sans-serif' } }, title: { style: { color: textColor } }, subtitle: { style: { color: textColor } }, xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: gridColor }, yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor }, legend: { itemStyle: { color: textColor } }, tooltip: { backgroundColor: isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)', style: { color: textColor } }, credits: { enabled: false } }); }
+        function renderDotPlot(data) { const dotColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(); Highcharts.chart('dotPlotContainer', { chart: { type: 'scatter', zoomType: 'xy' }, title: { text: null }, legend: { enabled: false }, xAxis: { title: { text: '値' } }, yAxis: { title: { text: '度数（積み上げ）' }, min: 0, allowDecimals: false, tickInterval: 1 }, series: [{ name: 'データ点', data: data, color: dotColor, marker: { radius: 5 } }], tooltip: { formatter: function () { return `値: <b>${this.x}</b><br/>${this.y}番目の点`; } } }); }
+        function renderHistogram(data) { const barColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(); const filteredData = data.filter(d => d.count > 0); Highcharts.chart('histogramContainer', { chart: { type: 'column', zoomType: 'x' }, title: { text: null }, legend: { enabled: false }, xAxis: { categories: filteredData.map(d => d.label), title: { text: '階級' } }, yAxis: { min: 0, title: { text: '度数' }, allowDecimals: false }, plotOptions: { column: { pointPadding: 0, borderWidth: 1, groupPadding: 0, shadow: false, borderColor: getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim() } }, series: [{ name: '度数', data: filteredData.map(d => d.count), color: barColor }], tooltip: { headerFormat: '<span style="font-size:10px">{point.key}</span><table>', pointFormat: '<tr><td style="padding:0">度数: </td><td style="padding:0"><b>{point.y}</b></td></tr>', footerFormat: '</table>', useHTML: true } }); }
+        function renderLineChart(arr) { const lineColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(); Highcharts.chart('lineChartContainer', { chart: { type: 'line', zoomType: 'x' }, title: { text: 'ソート済みデータの値' }, legend: { enabled: false }, xAxis: { title: { text: 'データインデックス' } }, yAxis: { title: { text: '値' } }, series: [{ name: '値', data: arr, color: lineColor }] }); }
+        function renderBarChart(data) { const barColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(); const filteredData = data.filter(d => d.count > 0); Highcharts.chart('barChartContainer', { chart: { type: 'bar', zoomType: 'y' }, title: { text: '階級ごとの度数' }, legend: { enabled: false }, xAxis: { categories: filteredData.map(d => d.label), title: { text: '階級' } }, yAxis: { min: 0, title: { text: '度数' }, allowDecimals: false }, series: [{ name: '度数', data: filteredData.map(d => d.count), color: barColor }] }); }
+        function renderPieChart(data) { const filteredData = data.filter(d => d.count > 0); Highcharts.chart('pieChartContainer', { chart: { type: 'pie' }, title: { text: '度数の割合' }, tooltip: { pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>' }, plotOptions: { pie: { allowPointSelect: true, cursor: 'pointer', dataLabels: { enabled: true, format: '<b>{point.name}</b>: {point.percentage:.1f} %' } } }, series: [{ name: '割合', data: filteredData.map(d => ({ name: d.label, y: d.count })) }] }); }
+        function renderObiChart(data) { const filteredData = data.filter(d => d.count > 0); Highcharts.chart('obiChartContainer', { chart: { type: 'bar' }, title: { text: '度数の構成比（帯グラフ）' }, xAxis: { categories: ['構成比'] }, yAxis: { min: 0, title: { text: 'パーセンテージ' } }, legend: { reversed: true }, plotOptions: { series: { stacking: 'percent' } }, series: filteredData.map(d => ({ name: d.label, data: [d.count] })) }); }
+        function renderRadarChart(data) { const filteredData = data.filter(d => d.count > 0); Highcharts.chart('radarChartContainer', { chart: { polar: true, type: 'line' }, title: { text: '度数レーダーチャート' }, pane: { size: '80%' }, xAxis: { categories: filteredData.map(d => d.label), tickmarkPlacement: 'on', lineWidth: 0 }, yAxis: { gridLineInterpolation: 'polygon', lineWidth: 0, min: 0 }, series: [{ name: '度数', data: filteredData.map(d => d.count), pointPlacement: 'on' }] }); }
+        function formatArrayWithHighlight(arr, highlightIndices = []) { const content = arr.map((val, i) => highlightIndices.includes(i) ? `<strong>${val}</strong>` : val).join(', '); return `[${content}]`; }
     </script>
 </body>
 </html>
