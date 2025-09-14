@@ -24,9 +24,8 @@
     <!-- KaTeX JS (v0.16.22) - deferred -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous"></script>
 
-    <!-- KaTeX Auto-render extension (v0.16.22) - deferred with onload -->
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous"
-        onload="renderMathInElement(document.body);"></script>
+    <!-- KaTeX Auto-render extension (v0.16.22) - deferred -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous"></script>
 
     <style>
         :root {
@@ -69,11 +68,6 @@
         .explanation { padding: 0.5rem; margin-bottom: 0.5rem; border-left: 3px solid var(--primary-color); background-color: var(--highlight-bg); }
         .formula p { word-break: break-all; }
         .disclaimer { font-size: 0.8rem; text-align: center; opacity: 0.7; margin-top: 1rem; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
-        .modal-overlay.visible { opacity: 1; visibility: visible; }
-        .modal-content { background: var(--card-bg-color); padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .modal-content h3 { margin-top: 0; }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
         .loader-container { display: none; flex-direction: column; justify-content: center; align-items: center; min-height: 100px; }
         .loader { width: 60px; height: 60px; animation: rotate 1s linear infinite; transform-origin: center center; }
         .loader .path { stroke: var(--spinner-color); stroke-linecap: round; stroke-dasharray: 89 150; stroke-dashoffset: 0; }
@@ -84,9 +78,7 @@
     <main>
         <header>
             <h1>AI搭載 統計データ自動分析ツール</h1>
-            <button id="settingsBtn" class="icon-button" title="設定">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c-1.79-.527-1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z"/></svg>
-            </button>
+            <!-- <<< 削除: 設定ボタンを削除しました >>> -->
         </header>
 
         <div class="card">
@@ -134,49 +126,26 @@
         </div>
     </main>
 
-    <div id="settingsModal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>設定</h3>
-            <div class="input-group">
-                <label for="apiKeyInput">Google AI APIキー</label>
-                <input type="password" id="apiKeyInput" placeholder="APIキーを入力してください">
-                <p style="font-size: 0.8rem; opacity: 0.8;">APIキーは <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a> で取得できます。入力されたキーはブラウザ内にのみ保存されます。</p>
-            </div>
-            <div class="modal-actions">
-                <button id="closeModalBtn" style="background-color: grey;">閉じる</button>
-                <button id="saveApiKeyBtn">保存</button>
-            </div>
-        </div>
-    </div>
+    <!-- <<< 削除: 設定モーダルを削除しました >>> -->
 
     <script>
+        // --- ★★★ 重要 ★★★ ---
+        // Cloudflare WorkerのURLを設定します。
+        // ご自身のWorkerのURLに書き換えてください。
+        const WORKER_URL = 'https://math-solver-proxy.nden14800.workers.dev';
+
         document.addEventListener('DOMContentLoaded', () => {
             const calculateBtn = document.getElementById('calculateBtn');
-            const settingsBtn = document.getElementById('settingsBtn');
-            const settingsModal = document.getElementById('settingsModal');
-            const closeModalBtn = document.getElementById('closeModalBtn');
-            const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
-            const apiKeyInput = document.getElementById('apiKeyInput');
-
+            // <<< 削除: 設定モーダル関連のDOM取得を削除 >>>
             calculateBtn.addEventListener('click', analyzeData);
+            // <<< 削除: 設定モーダル関連のイベントリスナーを削除 >>>
             
-            settingsBtn.addEventListener('click', () => {
-                apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
-                settingsModal.classList.add('visible');
-            });
-
-            closeModalBtn.addEventListener('click', () => settingsModal.classList.remove('visible'));
-            
-            saveApiKeyBtn.addEventListener('click', () => {
-                localStorage.setItem('geminiApiKey', apiKeyInput.value);
-                settingsModal.classList.remove('visible');
-            });
-
-            settingsModal.addEventListener('click', (e) => {
-                if (e.target === settingsModal) {
-                    settingsModal.classList.remove('visible');
-                }
-            });
+            // KaTeXのauto-renderをDOMContentLoaded後にも実行できるように準備
+            // KaTeXのCDNスクリプト自体がdeferで読み込まれるため、
+            // window.renderMathInElementが存在するか確認してから呼び出す
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body);
+            }
         });
         
         async function analyzeData() {
@@ -214,42 +183,65 @@
 
             if (window.renderMathInElement) {
                 renderMathInElement(document.body, {
-                    delimiters: [
-                        {left: '$$', right: '$$', display: true},
-                        {left: '$', right: '$', display: false}
-                    ]
+                    delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false} ]
                 });
             }
         }
+        
+        // --- ★★★ 変更点 ★★★ ---
+        // API呼び出しをWorker経由で行う共通関数
+        async function callApiViaWorker(prompt) {
+            if (!WORKER_URL || WORKER_URL.includes('<あなたのWorker名>')) {
+                throw new Error('Cloudflare WorkerのURLが設定されていません。コードを編集してください。');
+            }
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || `サーバーからのエラー: ${response.status}`);
+                }
+                const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                    return text;
+                } else {
+                    const finishReason = data?.candidates?.[0]?.finishReason;
+                    let errorMessage = 'AIが回答を生成できませんでした。';
+                    if (finishReason === 'SAFETY') {
+                        errorMessage += ' 安全性の設定によりブロックされた可能性があります。';
+                    } else if (finishReason) {
+                        errorMessage += ` (理由: ${finishReason})`;
+                    }
+                    throw new Error(errorMessage);
+                }
+            } catch (error) {
+                console.error('API呼び出しエラー:', error);
+                if (error instanceof TypeError) {
+                    throw new Error('ネットワークエラー、またはCORS設定の問題の可能性があります。');
+                }
+                throw error;
+            }
+        }
 
+        // --- ★★★ 変更点 ★★★ ---
+        // getAISummary関数を修正
         async function getAISummary(data, stats) {
             const aiSpinner = document.getElementById('aiSpinner');
             const aiSummaryContent = document.getElementById('aiSummaryContent');
-            const apiKey = localStorage.getItem('geminiApiKey');
             aiSummaryContent.innerHTML = '';
-            if (!apiKey) {
-                aiSummaryContent.innerHTML = '<p>AI要約を利用するには、設定からAPIキーを登録してください。</p>';
-                return;
-            }
             aiSpinner.style.display = 'flex';
+            
             const prompt = `あなたは優秀なデータ分析アシスタントです。以下のデータセットとその基本統計量に基づいて、データの特性について簡潔で分かりやすい要約を作成してください。重点的に分析するポイント：- 中心の傾向：平均値と中央値は近いか？どちらがデータ全体をよりよく表しているか？- ばらつき：データの範囲（最小値と最大値）は広いか？特定の値に集中しているか？- 分布の形状：最頻値は存在するか？データは山のような形をしているか、それとも平坦か？---### データセット (${data.length}個)\n${data.join(', ')}\n\n### 基本統計量\n- 合計値: ${stats.sum.toLocaleString()}\n- 平均値: ${stats.mean.toFixed(3)}\n- 中央値: ${stats.median.toFixed(3)}\n- 最頻値: ${stats.mode}\n---以上の情報を基に、データ全体の傾向を要約してください。`;
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error.message || `HTTPエラー: ${response.status}`);
-                }
-                const responseData = await response.json();
-                const summaryText = responseData.candidates[0].content.parts[0].text;
+                const summaryText = await callApiViaWorker(prompt);
                 aiSummaryContent.textContent = summaryText;
             } catch (error) {
                 console.error('AI要約の生成に失敗しました:', error);
-                aiSummaryContent.innerHTML = `<p style="color: red;">要約の生成中にエラーが発生しました。APIキーが正しいか、指定されたモデル名が有効か確認するか、ブラウザのコンソールで詳細を確認してください。</p>`;
+                aiSummaryContent.innerHTML = `<p style="color: red;">要約の生成中にエラーが発生しました: ${error.message} ブラウザのコンソールで詳細を確認してください。</p>`;
             } finally {
                 aiSpinner.style.display = 'none';
             }
