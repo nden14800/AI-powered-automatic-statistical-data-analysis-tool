@@ -48,6 +48,7 @@
         @keyframes rainbow-border-animation {
             0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
         }
+        /* このクラスは現在使用されていませんが、将来のために残しておきます */
         .rainbow-border-card {
             border: 3px solid transparent; background-origin: border-box; background-clip: padding-box, border-box;
             background-image: linear-gradient(var(--card-bg-color), var(--card-bg-color)), linear-gradient(135deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
@@ -110,7 +111,9 @@
         </div>
 
         <div id="results">
-            <div class="card rainbow-border-card">
+            <!-- --- ここから修正 --- -->
+            <div class="card">
+            <!-- --- ここまで修正 --- -->
                 <h2 class="flex-header">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-stars" viewBox="0 0 16 16"><path d="M7.657 6.247c.11-.33.576-.33.686 0l.645 1.937a2.89 2.89 0 0 0 1.829 1.828l1.936.645c.33.11.33.576 0 .686l-1.937.645a2.89 2.89 0 0 0-1.828 1.829l-.645 1.936a.361.361 0 0 1-.686 0l-.645-1.937a2.89 2.89 0 0 0-1.828-1.828l-1.937-.645a.361.361 0 0 1 0-.686l1.937-.645a2.89 2.89 0 0 0 1.828-1.828zM3.794 1.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387A1.73 1.73 0 0 0 4.593 5.69l-.387 1.162a.217.217 0 0 1-.412 0L3.407 5.69A1.73 1.73 0 0 0 2.31 4.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387A1.73 1.73 0 0 0 3.407 2.31zM10.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732L9.1 2.137a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z"/></svg>
                     AI によるデータ要約
@@ -123,7 +126,9 @@
             </div>
 
             <div class="card">
-                <h2>統計値</h2>
+                <!-- --- ここから修正 --- -->
+                <h2>基本統計量</h2>
+                <!-- --- ここまで修正 --- -->
                 <div class="table-container">
                     <table id="statsTable">
                         <thead><tr><th>統計量</th><th>値</th></tr></thead>
@@ -263,7 +268,27 @@
             aiSummaryContent.innerHTML = '';
             aiSpinner.style.display = 'flex';
             
-            const prompt = `あなたは優秀なデータ分析アシスタントです。以下のデータセットとその基本統計量に基づいて、データの特性について簡潔で分かりやすい要約を作成してください。重点的に分析するポイント：- 中心の傾向：平均値と中央値は近いか？どちらがデータ全体をよりよく表しているか？- ばらつき：データの範囲（最小値と最大値）は広いか？特定の値に集中しているか？- 分布の形状：最頻値は存在するか？データは山のような形をしているか、それとも平坦か？---### データセット (${data.length}個)\n${data.join(', ')}\n\n### 基本統計量\n- 合計値: ${stats.sum.toLocaleString()}\n- 平均値: ${stats.mean.toFixed(3)}\n- 中央値: ${stats.median.toFixed(3)}\n- 最頻値: ${stats.mode}\n---以上の情報を基に、データ全体の傾向を要約してください。`;
+            // --- ここから修正 ---
+            const prompt = `あなたは優秀なデータ分析アシスタントです。以下のデータセットとその基本統計量に基づいて、データの特性について簡潔で分かりやすい要約を作成してください。
+
+重点的に分析するポイント：
+- 中心の傾向：平均値と中央値は近いか？どちらがデータ全体をよりよく表しているか？
+- ばらつき：データの範囲（最小値と最大値）は広いか？数直線上ではデータは広範囲に散らばっているか、それとも一点に集中しているか？
+- 分布の形状：最頻値は存在するか？データは山のような形（特定の範囲に集中）をしているか、それとも平坦か？数直線上では、どのあたりにデータが密集しているか？
+
+---
+### データセット (${data.length}個)
+${data.join(', ')}
+
+### 基本統計量
+- 合計値: ${stats.sum.toLocaleString()}
+- 平均値: ${stats.mean.toFixed(3)}
+- 中央値: ${stats.median.toFixed(3)}
+- 最頻値: ${stats.mode}
+---
+
+以上の情報を基に、データ全体の傾向を要約してください。`;
+            // --- ここまで修正 ---
             
             try {
                 const summaryText = await callApiViaWorker(prompt);
@@ -370,7 +395,6 @@
         }
         function setHighchartsTheme() { const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches; const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim(); const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--card-bg-color').trim(); const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim(); Highcharts.setOptions({ chart: { backgroundColor: bgColor, style: { fontFamily: 'Roboto, sans-serif' } }, title: { style: { color: textColor } }, subtitle: { style: { color: textColor } }, xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: gridColor }, yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor }, legend: { itemStyle: { color: textColor } }, tooltip: { backgroundColor: isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)', style: { color: textColor } }, credits: { enabled: false } }); }
         
-        // --- ここから修正 ---
         function renderNumberLine(data) {
             const plotData = data.map(val => ({ x: val, y: 0 }));
             Highcharts.chart('numberLineContainer', {
@@ -388,12 +412,11 @@
                     labels: { enabled: false },
                     gridLineWidth: 0,
                     visible: false,
-                    min: -1, // Y軸の描画範囲を固定
+                    min: -1,
                     max: 1
                 },
                 tooltip: {
                     formatter: function () {
-                        // 元のデータ(data)から同じ値の数をカウント
                         const count = data.filter(d => d === this.x).length;
                         if (count > 1) {
                             return `値: <b>${this.x}</b><br/>(この位置に ${count} 個のデータがあります)`;
@@ -402,9 +425,7 @@
                     }
                 },
                 plotOptions: {
-                    scatter: {
-                        // jitter(点のばらつき)を削除
-                    }
+                    scatter: {}
                 },
                 series: [{
                     name: 'データ点',
@@ -416,7 +437,6 @@
                 }]
             });
         }
-        // --- ここまで修正 ---
 
         function renderDotPlot(data) { const dotColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(); Highcharts.chart('dotPlotContainer', { chart: { type: 'scatter', zoomType: 'xy' }, title: { text: null }, legend: { enabled: false }, xAxis: { title: { text: '値' } }, yAxis: { title: { text: '度数（積み上げ）' }, min: 0, allowDecimals: false, tickInterval: 1 }, series: [{ name: 'データ点', data: data, color: dotColor, marker: { radius: 5 } }], tooltip: { formatter: function () { return `値: <b>${this.x}</b><br/>${this.y}番目の点`; } } }); }
         function renderHistogram(data) { const barColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(); const filteredData = data.filter(d => d.count > 0); Highcharts.chart('histogramContainer', { chart: { type: 'column', zoomType: 'x' }, title: { text: null }, legend: { enabled: false }, xAxis: { categories: filteredData.map(d => d.label), title: { text: '階級' } }, yAxis: { min: 0, title: { text: '度数' }, allowDecimals: false }, plotOptions: { column: { pointPadding: 0, borderWidth: 1, groupPadding: 0, shadow: false, borderColor: getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim() } }, series: [{ name: '度数', data: filteredData.map(d => d.count), color: barColor }], tooltip: { headerFormat: '<span style="font-size:10px">{point.key}</span><table>', pointFormat: '<tr><td style="padding:0">度数: </td><td style="padding:0"><b>{point.y}</b></td></tr>', footerFormat: '</table>', useHTML: true } }); }
