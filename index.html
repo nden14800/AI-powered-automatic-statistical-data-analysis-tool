@@ -48,7 +48,6 @@
         @keyframes rainbow-border-animation {
             0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
         }
-        /* このクラスは現在使用されていませんが、将来のために残しておきます */
         .rainbow-border-card {
             border: 3px solid transparent; background-origin: border-box; background-clip: padding-box, border-box;
             background-image: linear-gradient(var(--card-bg-color), var(--card-bg-color)), linear-gradient(135deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
@@ -111,9 +110,7 @@
         </div>
 
         <div id="results">
-            <!-- --- ここから修正 --- -->
             <div class="card">
-            <!-- --- ここまで修正 --- -->
                 <h2 class="flex-header">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-stars" viewBox="0 0 16 16"><path d="M7.657 6.247c.11-.33.576-.33.686 0l.645 1.937a2.89 2.89 0 0 0 1.829 1.828l1.936.645c.33.11.33.576 0 .686l-1.937.645a2.89 2.89 0 0 0-1.828 1.829l-.645 1.936a.361.361 0 0 1-.686 0l-.645-1.937a2.89 2.89 0 0 0-1.828-1.828l-1.937-.645a.361.361 0 0 1 0-.686l1.937-.645a2.89 2.89 0 0 0 1.828-1.828zM3.794 1.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387A1.73 1.73 0 0 0 4.593 5.69l-.387 1.162a.217.217 0 0 1-.412 0L3.407 5.69A1.73 1.73 0 0 0 2.31 4.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387A1.73 1.73 0 0 0 3.407 2.31zM10.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732L9.1 2.137a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z"/></svg>
                     AI によるデータ要約
@@ -126,9 +123,7 @@
             </div>
 
             <div class="card">
-                <!-- --- ここから修正 --- -->
                 <h2>基本統計量</h2>
-                <!-- --- ここまで修正 --- -->
                 <div class="table-container">
                     <table id="statsTable">
                         <thead><tr><th>統計量</th><th>値</th></tr></thead>
@@ -141,6 +136,7 @@
                     <div id="meanFormula"></div>
                     <div id="medianFormula"></div>
                     <div id="modeFormula"></div>
+                    <div id="minMaxFormula"></div>
                 </div>
             </div>
 
@@ -206,6 +202,8 @@
             const mean = calculateMean(sortedNumbers);
             const median = calculateMedian(sortedNumbers);
             const modeResult = calculateMode(sortedNumbers);
+            const minValue = sortedNumbers[0];
+            const maxValue = sortedNumbers[sortedNumbers.length - 1];
             const cumulativeSumData = calculateCumulativeSum(originalNumbers);
             
             const binWidth = parseFloat(document.getElementById('binWidth').value);
@@ -214,7 +212,7 @@
             const frequencyData = createFrequencyData(sortedNumbers, binWidth);
             const dotPlotData = createDotPlotData(sortedNumbers);
             
-            displayResults(sum, mean, median, modeResult.text, sortedNumbers);
+            displayResults(sum, mean, median, modeResult.text, minValue, maxValue, sortedNumbers);
             renderDataTable(originalNumbers);
             renderFrequencyTable(frequencyData);
             
@@ -229,7 +227,7 @@
             renderObiChart(frequencyData);
             renderRadarChart(frequencyData);
 
-            await getAISummary(sortedNumbers, { sum, mean, median, mode: modeResult.text });
+            await getAISummary(sortedNumbers, { sum, mean, median, mode: modeResult.text, min: minValue, max: maxValue });
 
             if (window.renderMathInElement) {
                 renderMathInElement(document.body, {
@@ -268,12 +266,11 @@
             aiSummaryContent.innerHTML = '';
             aiSpinner.style.display = 'flex';
             
-            // --- ここから修正 ---
             const prompt = `あなたは優秀なデータ分析アシスタントです。以下のデータセットとその基本統計量に基づいて、データの特性について簡潔で分かりやすい要約を作成してください。
 
 重点的に分析するポイント：
 - 中心の傾向：平均値と中央値は近いか？どちらがデータ全体をよりよく表しているか？
-- ばらつき：データの範囲（最小値と最大値）は広いか？数直線上ではデータは広範囲に散らばっているか、それとも一点に集中しているか？
+- ばらつき：最小値 (${stats.min.toLocaleString()}) と最大値 (${stats.max.toLocaleString()}) からわかるデータの範囲は広いか狭いか？数直線上ではデータは広範囲に散らばっているか、それとも特定の箇所に集中しているか？
 - 分布の形状：最頻値は存在するか？データは山のような形（特定の範囲に集中）をしているか、それとも平坦か？数直線上では、どのあたりにデータが密集しているか？
 
 ---
@@ -282,13 +279,14 @@ ${data.join(', ')}
 
 ### 基本統計量
 - 合計値: ${stats.sum.toLocaleString()}
-- 平均値: ${stats.mean.toFixed(3)}
-- 中央値: ${stats.median.toFixed(3)}
+- 平均値: ${stats.mean.toLocaleString(undefined, {maximumFractionDigits: 3})}
+- 中央値: ${stats.median.toLocaleString(undefined, {maximumFractionDigits: 3})}
 - 最頻値: ${stats.mode}
+- 最小値: ${stats.min.toLocaleString()}
+- 最大値: ${stats.max.toLocaleString()}
 ---
 
 以上の情報を基に、データ全体の傾向を要約してください。`;
-            // --- ここまで修正 ---
             
             try {
                 const summaryText = await callApiViaWorker(prompt);
@@ -343,33 +341,38 @@ ${data.join(', ')}
             return plotData;
         }
 
-        function displayResults(sum, mean, median, modeText, arr) {
+        function displayResults(sum, mean, median, modeText, minValue, maxValue, arr) {
             document.getElementById('results').style.display = 'block';
             
+            const formatValue = (num) => num.toLocaleString(undefined, { maximumFractionDigits: 3 });
+
             const statsTbody = document.querySelector('#statsTable tbody');
             statsTbody.innerHTML = `
-                <tr><td>合計値 (Sum)</td><td>${sum.toLocaleString()}</td></tr>
-                <tr><td>平均値 (Mean)</td><td>${mean.toFixed(3)}</td></tr>
-                <tr><td>中央値 (Median)</td><td>${median.toFixed(3)}</td></tr>
+                <tr><td>合計値 (Sum)</td><td>${formatValue(sum)}</td></tr>
+                <tr><td>平均値 (Mean)</td><td>${formatValue(mean)}</td></tr>
+                <tr><td>中央値 (Median)</td><td>${formatValue(median)}</td></tr>
                 <tr><td>最頻値 (Mode)</td><td>${modeText}</td></tr>
+                <tr><td>最小値 (Min)</td><td>${formatValue(minValue)}</td></tr>
+                <tr><td>最大値 (Max)</td><td>${formatValue(maxValue)}</td></tr>
             `;
 
-            document.getElementById('sumFormula').innerHTML = `<div class="formula"><div class="explanation">合計値は、すべてのデータを足し合わせて求めます。</div>$$ \\text{合計} = ${arr.join(' + ')} $$$$ \\text{合計} = ${sum.toLocaleString()} $$</div>`;
-            document.getElementById('meanFormula').innerHTML = `<div class="formula"><div class="explanation">平均値(m)は、データの合計をデータの数で割って求めます。</div>$$ m = \\frac{\\text{データの合計}}{\\text{データの数}} $$$$ m = \\frac{${sum.toLocaleString()}}{${arr.length}} \\approx ${mean.toFixed(3)} $$</div>`;
+            document.getElementById('sumFormula').innerHTML = `<div class="formula"><div class="explanation">合計値は、すべてのデータを足し合わせて求めます。</div>$$ \\text{合計} = ${arr.join(' + ')} $$$$ \\text{合計} = ${formatValue(sum)} $$</div>`;
+            document.getElementById('meanFormula').innerHTML = `<div class="formula"><div class="explanation">平均値(m)は、データの合計をデータの数で割って求めます。</div>$$ m = \\frac{\\text{データの合計}}{\\text{データの数}} $$$$ m = \\frac{${formatValue(sum)}}{${arr.length}} \\approx ${formatValue(mean)} $$</div>`;
             
             let medianFormulaHTML = `<div class="formula"><div class="explanation">中央値を求めるには、まずデータを小さい順に並べ替えます。</div>`;
             const n = arr.length;
             medianFormulaHTML += `<p>並べ替えたデータ (${n}個):<br>${formatArrayWithHighlight(arr)}</p>`;
             if (n % 2 !== 0) {
                 const midIndex = Math.floor(n / 2);
-                medianFormulaHTML += `<div class="explanation">データ数が奇数 (${n}個) の場合は、真ん中 (${midIndex + 1}番目) の値が中央値です。</div><p>${formatArrayWithHighlight(arr, [midIndex])}</p>$$ \\text{中央値} = ${arr[midIndex]} $$`;
+                medianFormulaHTML += `<div class="explanation">データ数が奇数 (${n}個) の場合は、真ん中 (${midIndex + 1}番目) の値が中央値です。</div><p>${formatArrayWithHighlight(arr, [midIndex])}</p>$$ \\text{中央値} = ${formatValue(arr[midIndex])} $$`;
             } else {
                 const mid1 = n / 2 - 1, mid2 = n / 2;
-                medianFormulaHTML += `<div class="explanation">データ数が偶数 (${n}個) の場合は、真ん中に最も近い2つの値 (${mid1 + 1}番目と${mid2 + 1}番目) の平均値が中央値です。</div><p>${formatArrayWithHighlight(arr, [mid1, mid2])}</p>$$ \\text{中央値} = \\frac{${arr[mid1]} + ${arr[mid2]}}{2} = \\frac{${arr[mid1] + arr[mid2]}}{2} = ${median} $$`;
+                medianFormulaHTML += `<div class="explanation">データ数が偶数 (${n}個) の場合は、真ん中に最も近い2つの値 (${mid1 + 1}番目と${mid2 + 1}番目) の平均値が中央値です。</div><p>${formatArrayWithHighlight(arr, [mid1, mid2])}</p>$$ \\text{中央値} = \\frac{${formatValue(arr[mid1])} + ${formatValue(arr[mid2])}}{2} = \\frac{${formatValue(arr[mid1] + arr[mid2])}}{2} = ${formatValue(median)} $$`;
             }
             medianFormulaHTML += `</div>`;
             document.getElementById('medianFormula').innerHTML = medianFormulaHTML;
             document.getElementById('modeFormula').innerHTML = `<div class="formula"><div class="explanation">最頻値は、データの中で最も多く出現する値です。すべてのデータを比較し、最も頻繁に現れる数値を直接見つけます。</div></div>`;
+            document.getElementById('minMaxFormula').innerHTML = `<div class="formula"><div class="explanation">最小値と最大値は、データを小さい順に並べ替えたときの、最初の値と最後の値です。</div><p>並べ替えたデータ:<br>${formatArrayWithHighlight(arr, [0, arr.length - 1])}</p>$$ \\text{最小値} = ${formatValue(minValue)} $$$$ \\text{最大値} = ${formatValue(maxValue)} $$</div>`;
         }
         
         function renderDataTable(arr) {
