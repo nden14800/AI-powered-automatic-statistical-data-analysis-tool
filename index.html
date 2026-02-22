@@ -13,13 +13,8 @@
     <!-- KaTeX CSS (v0.16.22) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous">
 
-    <!-- Highcharts.js Core and Modules -->
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/highcharts-more.js"></script>
-    <!-- Modules for new features: Exporting, Data Export, and Accessibility -->
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
-    <script src="https://code.highcharts.com/modules/export-data.js"></script>
-    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <!-- Apache ECharts (v5.4.3) -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     
     <!-- KaTeX JS (v0.16.22) - deferred -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous"></script>
@@ -170,6 +165,8 @@
         // ご自身のWorkerのURLに書き換えてください。
         const WORKER_URL = 'https://math-solver-proxy.nden14800.workers.dev';
 
+        let echartsCommonOptions = {};
+
         document.addEventListener('DOMContentLoaded', () => {
             const calculateBtn = document.getElementById('calculateBtn');
             calculateBtn.addEventListener('click', analyzeData);
@@ -188,6 +185,22 @@
             });
 
             if (window.renderMathInElement) { renderMathInElement(document.body); }
+
+            // EChartsのウィンドウリサイズ対応
+            window.addEventListener('resize', () => {
+                const containerIds = [
+                    'numberLineContainer', 'dotPlotContainer', 'histogramContainer', 
+                    'lineChartContainer', 'cumulativeLineChartContainer', 'barChartContainer', 
+                    'pieChartContainer', 'obiChartContainer', 'radarChartContainer'
+                ];
+                containerIds.forEach(id => {
+                    const dom = document.getElementById(id);
+                    if (dom) {
+                        const chart = echarts.getInstanceByDom(dom);
+                        if (chart) chart.resize();
+                    }
+                });
+            });
         });
         
         async function analyzeData() {
@@ -396,77 +409,448 @@ ${data.join(', ')}
             totalRow.innerHTML = `<td><strong>合計</strong></td><td><strong>${totalFrequency}</strong></td>`;
             tfoot.appendChild(totalRow);
         }
-        function setHighchartsTheme() { const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches; const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim(); const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--card-bg-color').trim(); const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim(); Highcharts.setOptions({ chart: { backgroundColor: bgColor, style: { fontFamily: 'Roboto, sans-serif' } }, title: { style: { color: textColor } }, subtitle: { style: { color: textColor } }, xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor, lineColor: gridColor }, yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineColor: gridColor }, legend: { itemStyle: { color: textColor } }, tooltip: { backgroundColor: isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)', style: { color: textColor } }, credits: { enabled: false } }); }
+
+        function setHighchartsTheme() { 
+            const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches; 
+            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim(); 
+            const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--card-bg-color').trim(); 
+            const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim(); 
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+            
+            echartsCommonOptions = { textColor, bgColor, gridColor, primaryColor, isDarkMode };
+        }
         
         function renderNumberLine(data) {
-            const plotData = data.map(val => ({ x: val, y: 0 }));
-            Highcharts.chart('numberLineContainer', {
-                chart: { type: 'scatter', zoomType: 'x' },
-                title: { text: null },
-                legend: { enabled: false },
+            const dom = document.getElementById('numberLineContainer');
+            let myChart = echarts.getInstanceByDom(dom);
+            if (!myChart) myChart = echarts.init(dom);
+            const { textColor, gridColor, primaryColor } = echartsCommonOptions;
+            
+            const plotData = data.map(val => [val, 0]);
+            
+            const option = {
+                tooltip: {
+                    formatter: function (params) {
+                        const val = params.value[0];
+                        const count = data.filter(d => d === val).length;
+                        if (count > 1) {
+                            return `値: <b>${val}</b><br/>(この位置に ${count} 個のデータがあります)`;
+                        }
+                        return `値: <b>${val}</b>`;
+                    },
+                    backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+                    textStyle: { color: textColor }
+                },
                 xAxis: {
-                    title: { text: '値' },
-                    gridLineWidth: 1,
-                    startOnTick: true,
-                    endOnTick: true
+                    type: 'value',
+                    name: '値',
+                    nameTextStyle: { color: textColor },
+                    axisLabel: { color: textColor },
+                    splitLine: { lineStyle: { color: gridColor } },
+                    axisLine: { lineStyle: { color: gridColor } },
+                    scale: true
                 },
                 yAxis: {
-                    title: { text: null },
-                    labels: { enabled: false },
-                    gridLineWidth: 0,
-                    visible: false,
+                    type: 'value',
+                    show: false,
                     min: -1,
                     max: 1
                 },
+                series: [{
+                    name: 'データ点',
+                    type: 'scatter',
+                    data: plotData,
+                    symbolSize: 10,
+                    itemStyle: { color: primaryColor }
+                }],
+                grid: { left: '5%', right: '5%', top: '10%', bottom: '20%' }
+            };
+            myChart.setOption(option);
+        }
+
+        function renderDotPlot(data) {
+            const dom = document.getElementById('dotPlotContainer');
+            let myChart = echarts.getInstanceByDom(dom);
+            if (!myChart) myChart = echarts.init(dom);
+            const { textColor, gridColor, primaryColor } = echartsCommonOptions;
+            
+            const plotData = data.map(d => [d.x, d.y]);
+            
+            const option = {
                 tooltip: {
-                    formatter: function () {
-                        const count = data.filter(d => d === this.x).length;
-                        if (count > 1) {
-                            return `値: <b>${this.x}</b><br/>(この位置に ${count} 個のデータがあります)`;
-                        }
-                        return `値: <b>${this.x}</b>`;
-                    }
+                    formatter: function (params) {
+                        return `値: <b>${params.value[0]}</b><br/>${params.value[1]}番目の点`;
+                    },
+                    backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+                    textStyle: { color: textColor }
                 },
-                plotOptions: {
-                    scatter: {}
+                xAxis: {
+                    type: 'value',
+                    name: '値',
+                    nameTextStyle: { color: textColor },
+                    axisLabel: { color: textColor },
+                    splitLine: { lineStyle: { color: gridColor } },
+                    axisLine: { lineStyle: { color: gridColor } },
+                    scale: true
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '度数（積み上げ）',
+                    nameTextStyle: { color: textColor },
+                    axisLabel: { color: textColor },
+                    splitLine: { lineStyle: { color: gridColor } },
+                    min: 0,
+                    minInterval: 1
                 },
                 series: [{
                     name: 'データ点',
+                    type: 'scatter',
                     data: plotData,
-                    marker: {
-                        symbol: 'circle',
-                        radius: 5
-                    }
-                }]
-            });
+                    symbolSize: 10,
+                    itemStyle: { color: primaryColor }
+                }],
+                grid: { left: '10%', right: '10%', top: '15%', bottom: '15%' }
+            };
+            myChart.setOption(option);
         }
 
-        function renderDotPlot(data) { const dotColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(); Highcharts.chart('dotPlotContainer', { chart: { type: 'scatter', zoomType: 'xy' }, title: { text: null }, legend: { enabled: false }, xAxis: { title: { text: '値' } }, yAxis: { title: { text: '度数（積み上げ）' }, min: 0, allowDecimals: false, tickInterval: 1 }, series: [{ name: 'データ点', data: data, color: dotColor, marker: { radius: 5 } }], tooltip: { formatter: function () { return `値: <b>${this.x}</b><br/>${this.y}番目の点`; } } }); }
-        function renderHistogram(data) { const barColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(); const filteredData = data.filter(d => d.count > 0); Highcharts.chart('histogramContainer', { chart: { type: 'column', zoomType: 'x' }, title: { text: null }, legend: { enabled: false }, xAxis: { categories: filteredData.map(d => d.label), title: { text: '階級' } }, yAxis: { min: 0, title: { text: '度数' }, allowDecimals: false }, plotOptions: { column: { pointPadding: 0, borderWidth: 1, groupPadding: 0, shadow: false, borderColor: getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim() } }, series: [{ name: '度数', data: filteredData.map(d => d.count), color: barColor }], tooltip: { headerFormat: '<span style="font-size:10px">{point.key}</span><table>', pointFormat: '<tr><td style="padding:0">度数: </td><td style="padding:0"><b>{point.y}</b></td></tr>', footerFormat: '</table>', useHTML: true } }); }
-        function renderLineChart(arr) { const lineColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(); Highcharts.chart('lineChartContainer', { chart: { type: 'line', zoomType: 'x' }, title: { text: '入力データの推移' }, legend: { enabled: false }, xAxis: { title: { text: '入力順' } }, yAxis: { title: { text: '値' } }, series: [{ name: '値', data: arr, color: lineColor }] }); }
+        function renderHistogram(data) {
+            const dom = document.getElementById('histogramContainer');
+            let myChart = echarts.getInstanceByDom(dom);
+            if (!myChart) myChart = echarts.init(dom);
+            const { textColor, gridColor, primaryColor } = echartsCommonOptions;
+            
+            const filteredData = data.filter(d => d.count > 0);
+            const categories = filteredData.map(d => d.label);
+            const values = filteredData.map(d => d.count);
+            
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    formatter: function(params) {
+                        let p = params[0];
+                        return `<span style="font-size:10px">${p.name}</span><br/>度数: <b>${p.value}</b>`;
+                    },
+                    backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+                    textStyle: { color: textColor }
+                },
+                xAxis: {
+                    type: 'category',
+                    name: '階級',
+                    data: categories,
+                    nameTextStyle: { color: textColor },
+                    axisLabel: { color: textColor },
+                    axisLine: { lineStyle: { color: gridColor } }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '度数',
+                    nameTextStyle: { color: textColor },
+                    axisLabel: { color: textColor },
+                    splitLine: { lineStyle: { color: gridColor } },
+                    minInterval: 1
+                },
+                series: [{
+                    name: '度数',
+                    type: 'bar',
+                    barWidth: '99%',
+                    data: values,
+                    itemStyle: {
+                        color: primaryColor,
+                        borderColor: gridColor,
+                        borderWidth: 1
+                    }
+                }],
+                grid: { left: '10%', right: '10%', top: '15%', bottom: '15%' }
+            };
+            myChart.setOption(option);
+        }
+
+        function renderLineChart(arr) {
+            const dom = document.getElementById('lineChartContainer');
+            let myChart = echarts.getInstanceByDom(dom);
+            if (!myChart) myChart = echarts.init(dom);
+            const { textColor, gridColor, primaryColor } = echartsCommonOptions;
+            
+            const option = {
+                title: {
+                    text: '入力データの推移',
+                    textStyle: { color: textColor },
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+                    textStyle: { color: textColor }
+                },
+                xAxis: {
+                    type: 'category',
+                    name: '入力順',
+                    data: arr.map((_, i) => i),
+                    nameTextStyle: { color: textColor },
+                    axisLabel: { color: textColor },
+                    axisLine: { lineStyle: { color: gridColor } }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '値',
+                    nameTextStyle: { color: textColor },
+                    axisLabel: { color: textColor },
+                    splitLine: { lineStyle: { color: gridColor } }
+                },
+                series: [{
+                    name: '値',
+                    type: 'line',
+                    data: arr,
+                    itemStyle: { color: primaryColor }
+                }],
+                grid: { left: '10%', right: '10%', top: '15%', bottom: '15%' }
+            };
+            myChart.setOption(option);
+        }
         
         function renderCumulativeLineChart(arr) {
-            const lineColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
-            Highcharts.chart('cumulativeLineChartContainer', {
-                chart: { type: 'line', zoomType: 'x' }, title: { text: '累積合計の推移' },
-                legend: { enabled: false }, xAxis: { title: { text: '入力順' }, allowDecimals: false },
-                yAxis: { title: { text: '累積合計' } },
-                series: [{ name: '累積合計', data: arr, color: lineColor }]
-            });
+            const dom = document.getElementById('cumulativeLineChartContainer');
+            let myChart = echarts.getInstanceByDom(dom);
+            if (!myChart) myChart = echarts.init(dom);
+            const { textColor, gridColor, primaryColor } = echartsCommonOptions;
+            
+            const option = {
+                title: {
+                    text: '累積合計の推移',
+                    textStyle: { color: textColor },
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+                    textStyle: { color: textColor }
+                },
+                xAxis: {
+                    type: 'category',
+                    name: '入力順',
+                    data: arr.map((_, i) => i),
+                    nameTextStyle: { color: textColor },
+                    axisLabel: { color: textColor },
+                    axisLine: { lineStyle: { color: gridColor } }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '累積合計',
+                    nameTextStyle: { color: textColor },
+                    axisLabel: { color: textColor },
+                    splitLine: { lineStyle: { color: gridColor } }
+                },
+                series: [{
+                    name: '累積合計',
+                    type: 'line',
+                    data: arr,
+                    itemStyle: { color: primaryColor }
+                }],
+                grid: { left: '10%', right: '10%', top: '15%', bottom: '15%' }
+            };
+            myChart.setOption(option);
         }
+
         function renderBarChart(arr) {
-            const barColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
-            Highcharts.chart('barChartContainer', {
-                chart: { type: 'column', zoomType: 'x' }, title: { text: '入力データの値' }, legend: { enabled: false },
-                xAxis: { categories: arr.map((_, index) => `${index + 1}番目`), title: { text: '入力順' }, crosshair: true },
-                yAxis: { min: 0, title: { text: '値' } },
-                series: [{ name: '値', data: arr, color: barColor }],
-                tooltip: { headerFormat: '<span style="font-size:10px">{point.key}</span><table>', pointFormat: '<tr><td style="padding:0">値: </td><td style="padding:0"><b>{point.y}</b></td></tr>', footerFormat: '</table>', useHTML: true }
-            });
+            const dom = document.getElementById('barChartContainer');
+            let myChart = echarts.getInstanceByDom(dom);
+            if (!myChart) myChart = echarts.init(dom);
+            const { textColor, gridColor, primaryColor } = echartsCommonOptions;
+            
+            const categories = arr.map((_, index) => `${index + 1}番目`);
+            
+            const option = {
+                title: {
+                    text: '入力データの値',
+                    textStyle: { color: textColor },
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    formatter: function(params) {
+                        let p = params[0];
+                        return `<span style="font-size:10px">${p.name}</span><br/>値: <b>${p.value}</b>`;
+                    },
+                    backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+                    textStyle: { color: textColor }
+                },
+                xAxis: {
+                    type: 'category',
+                    name: '入力順',
+                    data: categories,
+                    nameTextStyle: { color: textColor },
+                    axisLabel: { color: textColor },
+                    axisLine: { lineStyle: { color: gridColor } }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '値',
+                    min: 0,
+                    nameTextStyle: { color: textColor },
+                    axisLabel: { color: textColor },
+                    splitLine: { lineStyle: { color: gridColor } }
+                },
+                series: [{
+                    name: '値',
+                    type: 'bar',
+                    data: arr,
+                    itemStyle: { color: primaryColor }
+                }],
+                grid: { left: '10%', right: '10%', top: '15%', bottom: '15%' }
+            };
+            myChart.setOption(option);
         }
-        function renderPieChart(data) { const filteredData = data.filter(d => d.count > 0); Highcharts.chart('pieChartContainer', { chart: { type: 'pie' }, title: { text: '度数の割合' }, tooltip: { pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>' }, plotOptions: { pie: { allowPointSelect: true, cursor: 'pointer', dataLabels: { enabled: true, format: '<b>{point.name}</b>: {point.percentage:.1f} %' } } }, series: [{ name: '割合', data: filteredData.map(d => ({ name: d.label, y: d.count })) }] }); }
-        function renderObiChart(data) { const filteredData = data.filter(d => d.count > 0); Highcharts.chart('obiChartContainer', { chart: { type: 'bar' }, title: { text: '度数の構成比（帯グラフ）' }, xAxis: { categories: ['構成比'] }, yAxis: { min: 0, title: { text: 'パーセンテージ' } }, legend: { reversed: true }, plotOptions: { series: { stacking: 'percent' } }, series: filteredData.map(d => ({ name: d.label, data: [d.count] })) }); }
-        function renderRadarChart(data) { const filteredData = data.filter(d => d.count > 0); Highcharts.chart('radarChartContainer', { chart: { polar: true, type: 'line' }, title: { text: '度数レーダーチャート' }, pane: { size: '80%' }, xAxis: { categories: filteredData.map(d => d.label), tickmarkPlacement: 'on', lineWidth: 0 }, yAxis: { gridLineInterpolation: 'polygon', lineWidth: 0, min: 0 }, series: [{ name: '度数', data: filteredData.map(d => d.count), pointPlacement: 'on' }] }); }
+
+        function renderPieChart(data) {
+            const dom = document.getElementById('pieChartContainer');
+            let myChart = echarts.getInstanceByDom(dom);
+            if (!myChart) myChart = echarts.init(dom);
+            const { textColor } = echartsCommonOptions;
+            
+            const filteredData = data.filter(d => d.count > 0);
+            const pieData = filteredData.map(d => ({ name: d.label, value: d.count }));
+            
+            const option = {
+                title: {
+                    text: '度数の割合',
+                    textStyle: { color: textColor },
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}: {d}%',
+                    backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+                    textStyle: { color: textColor }
+                },
+                series: [{
+                    name: '割合',
+                    type: 'pie',
+                    radius: '70%',
+                    data: pieData,
+                    label: {
+                        color: textColor,
+                        formatter: '{b}: {d}%'
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }]
+            };
+            myChart.setOption(option);
+        }
+
+        function renderObiChart(data) {
+            const dom = document.getElementById('obiChartContainer');
+            let myChart = echarts.getInstanceByDom(dom);
+            if (!myChart) myChart = echarts.init(dom);
+            const { textColor, gridColor } = echartsCommonOptions;
+            
+            const filteredData = data.filter(d => d.count > 0);
+            const total = filteredData.reduce((sum, d) => sum + d.count, 0);
+            
+            const series = filteredData.map(d => {
+                const percent = total > 0 ? (d.count / total * 100) : 0;
+                return {
+                    name: d.label,
+                    type: 'bar',
+                    stack: 'total',
+                    data: [percent],
+                    label: {
+                        show: true,
+                        formatter: '{seriesName}'
+                    }
+                };
+            });
+            
+            const option = {
+                title: {
+                    text: '度数の構成比（帯グラフ）',
+                    textStyle: { color: textColor },
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: function(params) {
+                        return `${params.seriesName}: ${params.value.toFixed(1)}%`;
+                    },
+                    backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+                    textStyle: { color: textColor }
+                },
+                legend: {
+                    top: 'bottom',
+                    textStyle: { color: textColor }
+                },
+                xAxis: {
+                    type: 'value',
+                    name: 'パーセンテージ',
+                    max: 100,
+                    nameTextStyle: { color: textColor },
+                    axisLabel: { color: textColor },
+                    splitLine: { lineStyle: { color: gridColor } }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: ['構成比'],
+                    axisLabel: { color: textColor },
+                    axisLine: { lineStyle: { color: gridColor } }
+                },
+                series: series,
+                grid: { left: '10%', right: '10%', top: '15%', bottom: '25%' }
+            };
+            myChart.setOption(option);
+        }
+
+        function renderRadarChart(data) {
+            const dom = document.getElementById('radarChartContainer');
+            let myChart = echarts.getInstanceByDom(dom);
+            if (!myChart) myChart = echarts.init(dom);
+            const { textColor, gridColor, primaryColor } = echartsCommonOptions;
+            
+            const filteredData = data.filter(d => d.count > 0);
+            const maxVal = Math.max(...filteredData.map(d => d.count), 1);
+            
+            const indicator = filteredData.map(d => ({ name: d.label, max: maxVal + (maxVal * 0.2) }));
+            const values = filteredData.map(d => d.count);
+            
+            const option = {
+                title: {
+                    text: '度数レーダーチャート',
+                    textStyle: { color: textColor },
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+                    textStyle: { color: textColor }
+                },
+                radar: {
+                    indicator: indicator,
+                    axisName: { color: textColor },
+                    splitLine: { lineStyle: { color: gridColor } },
+                    splitArea: { show: false },
+                    axisLine: { lineStyle: { color: gridColor } }
+                },
+                series: [{
+                    name: '度数',
+                    type: 'radar',
+                    data: [{
+                        value: values,
+                        name: '度数'
+                    }],
+                    itemStyle: { color: primaryColor },
+                    lineStyle: { color: primaryColor }
+                }]
+            };
+            myChart.setOption(option);
+        }
+
         function formatArrayWithHighlight(arr, highlightIndices = []) { const content = arr.map((val, i) => highlightIndices.includes(i) ? `<strong>${val}</strong>` : val).join(', '); return `[${content}]`; }
     </script>
 </body>
