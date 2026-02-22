@@ -416,19 +416,21 @@ ${data.join(', ')}
             const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--card-bg-color').trim(); 
             const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim(); 
             const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+            const fontFamily = 'Roboto, sans-serif';
             
-            echartsCommonOptions = { textColor, bgColor, gridColor, primaryColor, isDarkMode };
+            echartsCommonOptions = { textColor, bgColor, gridColor, primaryColor, isDarkMode, fontFamily };
         }
         
         function renderNumberLine(data) {
             const dom = document.getElementById('numberLineContainer');
             let myChart = echarts.getInstanceByDom(dom);
             if (!myChart) myChart = echarts.init(dom);
-            const { textColor, gridColor, primaryColor } = echartsCommonOptions;
+            const { textColor, gridColor, primaryColor, fontFamily } = echartsCommonOptions;
             
             const plotData = data.map(val => [val, 0]);
             
             const option = {
+                textStyle: { fontFamily: fontFamily },
                 tooltip: {
                     formatter: function (params) {
                         const val = params.value[0];
@@ -439,13 +441,13 @@ ${data.join(', ')}
                         return `値: <b>${val}</b>`;
                     },
                     backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-                    textStyle: { color: textColor }
+                    textStyle: { color: textColor, fontFamily: fontFamily }
                 },
                 xAxis: {
                     type: 'value',
                     name: '値',
-                    nameTextStyle: { color: textColor },
-                    axisLabel: { color: textColor },
+                    nameTextStyle: { color: textColor, fontFamily: fontFamily },
+                    axisLabel: { color: textColor, fontFamily: fontFamily },
                     splitLine: { lineStyle: { color: gridColor } },
                     axisLine: { lineStyle: { color: gridColor } },
                     scale: true
@@ -472,23 +474,24 @@ ${data.join(', ')}
             const dom = document.getElementById('dotPlotContainer');
             let myChart = echarts.getInstanceByDom(dom);
             if (!myChart) myChart = echarts.init(dom);
-            const { textColor, gridColor, primaryColor } = echartsCommonOptions;
+            const { textColor, gridColor, primaryColor, fontFamily } = echartsCommonOptions;
             
             const plotData = data.map(d => [d.x, d.y]);
             
             const option = {
+                textStyle: { fontFamily: fontFamily },
                 tooltip: {
                     formatter: function (params) {
                         return `値: <b>${params.value[0]}</b><br/>${params.value[1]}番目の点`;
                     },
                     backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-                    textStyle: { color: textColor }
+                    textStyle: { color: textColor, fontFamily: fontFamily }
                 },
                 xAxis: {
                     type: 'value',
                     name: '値',
-                    nameTextStyle: { color: textColor },
-                    axisLabel: { color: textColor },
+                    nameTextStyle: { color: textColor, fontFamily: fontFamily },
+                    axisLabel: { color: textColor, fontFamily: fontFamily },
                     splitLine: { lineStyle: { color: gridColor } },
                     axisLine: { lineStyle: { color: gridColor } },
                     scale: true
@@ -496,8 +499,8 @@ ${data.join(', ')}
                 yAxis: {
                     type: 'value',
                     name: '度数（積み上げ）',
-                    nameTextStyle: { color: textColor },
-                    axisLabel: { color: textColor },
+                    nameTextStyle: { color: textColor, fontFamily: fontFamily },
+                    axisLabel: { color: textColor, fontFamily: fontFamily },
                     splitLine: { lineStyle: { color: gridColor } },
                     min: 0,
                     minInterval: 1
@@ -518,13 +521,14 @@ ${data.join(', ')}
             const dom = document.getElementById('histogramContainer');
             let myChart = echarts.getInstanceByDom(dom);
             if (!myChart) myChart = echarts.init(dom);
-            const { textColor, gridColor, primaryColor } = echartsCommonOptions;
+            const { textColor, gridColor, primaryColor, fontFamily } = echartsCommonOptions;
             
             const filteredData = data.filter(d => d.count > 0);
             const categories = filteredData.map(d => d.label);
             const values = filteredData.map(d => d.count);
             
             const option = {
+                textStyle: { fontFamily: fontFamily },
                 tooltip: {
                     trigger: 'axis',
                     axisPointer: { type: 'shadow' },
@@ -533,21 +537,21 @@ ${data.join(', ')}
                         return `<span style="font-size:10px">${p.name}</span><br/>度数: <b>${p.value}</b>`;
                     },
                     backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-                    textStyle: { color: textColor }
+                    textStyle: { color: textColor, fontFamily: fontFamily }
                 },
                 xAxis: {
                     type: 'category',
                     name: '階級',
                     data: categories,
-                    nameTextStyle: { color: textColor },
-                    axisLabel: { color: textColor },
+                    nameTextStyle: { color: textColor, fontFamily: fontFamily },
+                    axisLabel: { color: textColor, fontFamily: fontFamily },
                     axisLine: { lineStyle: { color: gridColor } }
                 },
                 yAxis: {
                     type: 'value',
                     name: '度数',
-                    nameTextStyle: { color: textColor },
-                    axisLabel: { color: textColor },
+                    nameTextStyle: { color: textColor, fontFamily: fontFamily },
+                    axisLabel: { color: textColor, fontFamily: fontFamily },
                     splitLine: { lineStyle: { color: gridColor } },
                     minInterval: 1
                 },
@@ -571,37 +575,39 @@ ${data.join(', ')}
             const dom = document.getElementById('lineChartContainer');
             let myChart = echarts.getInstanceByDom(dom);
             if (!myChart) myChart = echarts.init(dom);
-            const { textColor, gridColor, primaryColor } = echartsCommonOptions;
+            const { textColor, gridColor, primaryColor, fontFamily } = echartsCommonOptions;
             
             const option = {
+                textStyle: { fontFamily: fontFamily },
                 title: {
                     text: '入力データの推移',
-                    textStyle: { color: textColor },
+                    textStyle: { color: textColor, fontFamily: fontFamily },
                     left: 'center'
                 },
                 tooltip: {
                     trigger: 'axis',
                     backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-                    textStyle: { color: textColor }
+                    textStyle: { color: textColor, fontFamily: fontFamily }
                 },
                 xAxis: {
                     type: 'category',
                     name: '入力順',
                     data: arr.map((_, i) => i),
-                    nameTextStyle: { color: textColor },
-                    axisLabel: { color: textColor },
+                    nameTextStyle: { color: textColor, fontFamily: fontFamily },
+                    axisLabel: { color: textColor, fontFamily: fontFamily },
                     axisLine: { lineStyle: { color: gridColor } }
                 },
                 yAxis: {
                     type: 'value',
                     name: '値',
-                    nameTextStyle: { color: textColor },
-                    axisLabel: { color: textColor },
+                    nameTextStyle: { color: textColor, fontFamily: fontFamily },
+                    axisLabel: { color: textColor, fontFamily: fontFamily },
                     splitLine: { lineStyle: { color: gridColor } }
                 },
                 series: [{
                     name: '値',
                     type: 'line',
+                    symbol: 'none',
                     data: arr,
                     itemStyle: { color: primaryColor }
                 }],
@@ -614,37 +620,39 @@ ${data.join(', ')}
             const dom = document.getElementById('cumulativeLineChartContainer');
             let myChart = echarts.getInstanceByDom(dom);
             if (!myChart) myChart = echarts.init(dom);
-            const { textColor, gridColor, primaryColor } = echartsCommonOptions;
+            const { textColor, gridColor, primaryColor, fontFamily } = echartsCommonOptions;
             
             const option = {
+                textStyle: { fontFamily: fontFamily },
                 title: {
                     text: '累積合計の推移',
-                    textStyle: { color: textColor },
+                    textStyle: { color: textColor, fontFamily: fontFamily },
                     left: 'center'
                 },
                 tooltip: {
                     trigger: 'axis',
                     backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-                    textStyle: { color: textColor }
+                    textStyle: { color: textColor, fontFamily: fontFamily }
                 },
                 xAxis: {
                     type: 'category',
                     name: '入力順',
                     data: arr.map((_, i) => i),
-                    nameTextStyle: { color: textColor },
-                    axisLabel: { color: textColor },
+                    nameTextStyle: { color: textColor, fontFamily: fontFamily },
+                    axisLabel: { color: textColor, fontFamily: fontFamily },
                     axisLine: { lineStyle: { color: gridColor } }
                 },
                 yAxis: {
                     type: 'value',
                     name: '累積合計',
-                    nameTextStyle: { color: textColor },
-                    axisLabel: { color: textColor },
+                    nameTextStyle: { color: textColor, fontFamily: fontFamily },
+                    axisLabel: { color: textColor, fontFamily: fontFamily },
                     splitLine: { lineStyle: { color: gridColor } }
                 },
                 series: [{
                     name: '累積合計',
                     type: 'line',
+                    symbol: 'none',
                     data: arr,
                     itemStyle: { color: primaryColor }
                 }],
@@ -657,14 +665,15 @@ ${data.join(', ')}
             const dom = document.getElementById('barChartContainer');
             let myChart = echarts.getInstanceByDom(dom);
             if (!myChart) myChart = echarts.init(dom);
-            const { textColor, gridColor, primaryColor } = echartsCommonOptions;
+            const { textColor, gridColor, primaryColor, fontFamily } = echartsCommonOptions;
             
             const categories = arr.map((_, index) => `${index + 1}番目`);
             
             const option = {
+                textStyle: { fontFamily: fontFamily },
                 title: {
                     text: '入力データの値',
-                    textStyle: { color: textColor },
+                    textStyle: { color: textColor, fontFamily: fontFamily },
                     left: 'center'
                 },
                 tooltip: {
@@ -675,22 +684,22 @@ ${data.join(', ')}
                         return `<span style="font-size:10px">${p.name}</span><br/>値: <b>${p.value}</b>`;
                     },
                     backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-                    textStyle: { color: textColor }
+                    textStyle: { color: textColor, fontFamily: fontFamily }
                 },
                 xAxis: {
                     type: 'category',
                     name: '入力順',
                     data: categories,
-                    nameTextStyle: { color: textColor },
-                    axisLabel: { color: textColor },
+                    nameTextStyle: { color: textColor, fontFamily: fontFamily },
+                    axisLabel: { color: textColor, fontFamily: fontFamily },
                     axisLine: { lineStyle: { color: gridColor } }
                 },
                 yAxis: {
                     type: 'value',
                     name: '値',
                     min: 0,
-                    nameTextStyle: { color: textColor },
-                    axisLabel: { color: textColor },
+                    nameTextStyle: { color: textColor, fontFamily: fontFamily },
+                    axisLabel: { color: textColor, fontFamily: fontFamily },
                     splitLine: { lineStyle: { color: gridColor } }
                 },
                 series: [{
@@ -708,22 +717,23 @@ ${data.join(', ')}
             const dom = document.getElementById('pieChartContainer');
             let myChart = echarts.getInstanceByDom(dom);
             if (!myChart) myChart = echarts.init(dom);
-            const { textColor } = echartsCommonOptions;
+            const { textColor, fontFamily } = echartsCommonOptions;
             
             const filteredData = data.filter(d => d.count > 0);
             const pieData = filteredData.map(d => ({ name: d.label, value: d.count }));
             
             const option = {
+                textStyle: { fontFamily: fontFamily },
                 title: {
                     text: '度数の割合',
-                    textStyle: { color: textColor },
+                    textStyle: { color: textColor, fontFamily: fontFamily },
                     left: 'center'
                 },
                 tooltip: {
                     trigger: 'item',
                     formatter: '{a} <br/>{b}: {d}%',
                     backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-                    textStyle: { color: textColor }
+                    textStyle: { color: textColor, fontFamily: fontFamily }
                 },
                 series: [{
                     name: '割合',
@@ -732,6 +742,7 @@ ${data.join(', ')}
                     data: pieData,
                     label: {
                         color: textColor,
+                        fontFamily: fontFamily,
                         formatter: '{b}: {d}%'
                     },
                     emphasis: {
@@ -750,7 +761,7 @@ ${data.join(', ')}
             const dom = document.getElementById('obiChartContainer');
             let myChart = echarts.getInstanceByDom(dom);
             if (!myChart) myChart = echarts.init(dom);
-            const { textColor, gridColor } = echartsCommonOptions;
+            const { textColor, gridColor, fontFamily } = echartsCommonOptions;
             
             const filteredData = data.filter(d => d.count > 0);
             const total = filteredData.reduce((sum, d) => sum + d.count, 0);
@@ -764,15 +775,21 @@ ${data.join(', ')}
                     data: [percent],
                     label: {
                         show: true,
-                        formatter: '{seriesName}'
+                        formatter: function(params) {
+                            return params.seriesName;
+                        },
+                        fontSize: 12,
+                        fontFamily: fontFamily,
+                        overflow: 'truncate'
                     }
                 };
             });
             
             const option = {
+                textStyle: { fontFamily: fontFamily },
                 title: {
                     text: '度数の構成比（帯グラフ）',
-                    textStyle: { color: textColor },
+                    textStyle: { color: textColor, fontFamily: fontFamily },
                     left: 'center'
                 },
                 tooltip: {
@@ -781,24 +798,24 @@ ${data.join(', ')}
                         return `${params.seriesName}: ${params.value.toFixed(1)}%`;
                     },
                     backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-                    textStyle: { color: textColor }
+                    textStyle: { color: textColor, fontFamily: fontFamily }
                 },
                 legend: {
                     top: 'bottom',
-                    textStyle: { color: textColor }
+                    textStyle: { color: textColor, fontFamily: fontFamily }
                 },
                 xAxis: {
                     type: 'value',
                     name: 'パーセンテージ',
                     max: 100,
-                    nameTextStyle: { color: textColor },
-                    axisLabel: { color: textColor },
+                    nameTextStyle: { color: textColor, fontFamily: fontFamily },
+                    axisLabel: { color: textColor, fontFamily: fontFamily },
                     splitLine: { lineStyle: { color: gridColor } }
                 },
                 yAxis: {
                     type: 'category',
                     data: ['構成比'],
-                    axisLabel: { color: textColor },
+                    axisLabel: { color: textColor, fontFamily: fontFamily },
                     axisLine: { lineStyle: { color: gridColor } }
                 },
                 series: series,
@@ -811,7 +828,7 @@ ${data.join(', ')}
             const dom = document.getElementById('radarChartContainer');
             let myChart = echarts.getInstanceByDom(dom);
             if (!myChart) myChart = echarts.init(dom);
-            const { textColor, gridColor, primaryColor } = echartsCommonOptions;
+            const { textColor, gridColor, primaryColor, fontFamily } = echartsCommonOptions;
             
             const filteredData = data.filter(d => d.count > 0);
             const maxVal = Math.max(...filteredData.map(d => d.count), 1);
@@ -820,19 +837,20 @@ ${data.join(', ')}
             const values = filteredData.map(d => d.count);
             
             const option = {
+                textStyle: { fontFamily: fontFamily },
                 title: {
                     text: '度数レーダーチャート',
-                    textStyle: { color: textColor },
+                    textStyle: { color: textColor, fontFamily: fontFamily },
                     left: 'center'
                 },
                 tooltip: {
                     trigger: 'item',
                     backgroundColor: echartsCommonOptions.isDarkMode ? 'rgba(30, 42, 74, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-                    textStyle: { color: textColor }
+                    textStyle: { color: textColor, fontFamily: fontFamily }
                 },
                 radar: {
                     indicator: indicator,
-                    axisName: { color: textColor },
+                    axisName: { color: textColor, fontFamily: fontFamily },
                     splitLine: { lineStyle: { color: gridColor } },
                     splitArea: { show: false },
                     axisLine: { lineStyle: { color: gridColor } }
